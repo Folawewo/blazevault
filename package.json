@@ -1,0 +1,15 @@
+{
+  "name": "blazevault",
+  "version": "1.0.0",
+  "description": "Autonomous streaming payments and trustless milestone escrow protocol for Bitcoin Cash.",
+  "type": "module",
+  "scripts": {
+    "compile": "cashc contracts/BlazeStream.cash -o artifacts/BlazeStream.json && cashc contracts/BlazeEscrow.cash -o artifacts/BlazeEscrow.json",
+    "test": "node test/blazevault.test.js"
+  },
+  "devDependencies": {
+    "cashc": "^0.14.0",
+    "cashscript": "^0.14.0"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,33 @@
+pragma cashscript ^0.14.0;
+
+contract BlazeStream(
+    bytes20 senderPkh,
+    bytes20 recipientPkh,
+    int startTime,
+    int stopTime,
+    int totalAmount
+) {
+    function claim(pubkey recipientPk, sig recipientSig, int claimTime, int claimAmount) {
+        require(hash160(recipientPk) == recipientPkh);
+        require(checkSig(recipientSig, recipientPk));
+        require(tx.time >= claimTime);
+        require(claimTime >= startTime);
+        require(claimAmount > 0);
+        require(claimAmount <= totalAmount);
+
+        bytes recipientLockingBytecode = new LockingBytecodeP2PKH(recipientPkh);
+        require(tx.outputs[0].lockingBytecode == recipientLockingBytecode);
+        require(tx.outputs[0].value >= claimAmount);
+    }
+
+    function cancel(pubkey senderPk, sig senderSig) {
+        require(hash160(senderPk) == senderPkh);
+        require(checkSig(senderSig, senderPk));
+    }
+
+    function refund(pubkey senderPk, sig senderSig) {
+        require(tx.time >= stopTime);
+        require(hash160(senderPk) == senderPkh);
+        require(checkSig(senderSig, senderPk));
+    }
+}

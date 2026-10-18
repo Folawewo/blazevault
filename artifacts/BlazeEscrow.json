@@ -1,0 +1,72 @@
+{
+  "contractName": "BlazeEscrow",
+  "constructorInputs": [
+    { "name": "buyerPkh", "type": "bytes20" },
+    { "name": "sellerPkh", "type": "bytes20" },
+    { "name": "arbiterPkh", "type": "bytes20" },
+    { "name": "deadline", "type": "int" },
+    { "name": "totalAmount", "type": "int" }
+  ],
+  "abi": [
+    {
+      "name": "release",
+      "inputs": [
+        { "name": "buyerPk", "type": "pubkey" },
+        { "name": "buyerSig", "type": "sig" },
+        { "name": "releaseAmount", "type": "int" }
+      ]
+    },
+    {
+      "name": "refund",
+      "inputs": [
+        { "name": "buyerPk", "type": "pubkey" },
+        { "name": "buyerSig", "type": "sig" }
+      ]
+    },
+    {
+      "name": "dispute",
+      "inputs": [
+        { "name": "arbiterPk", "type": "pubkey" },
+        { "name": "arbiterSig", "type": "sig" },
+        { "name": "sellerShare", "type": "int" },
+        { "name": "buyerShare", "type": "int" }
+      ]
+    }
+  ],
+  "bytecode": "OP_5 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_6 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_6 OP_ROLL OP_6 OP_ROLL OP_CHECKSIGVERIFY OP_5 OP_PICK OP_0 OP_GREATERTHAN OP_VERIFY OP_5 OP_PICK OP_4 OP_ROLL OP_LESSTHANOREQUAL OP_VERIFY 76a914 OP_SWAP OP_CAT 88ac OP_CAT OP_0 OP_OUTPUTBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_4 OP_ROLL OP_GREATERTHANOREQUAL OP_NIP OP_NIP OP_NIP OP_ELSE OP_5 OP_PICK OP_1 OP_NUMEQUAL OP_IF OP_3 OP_ROLL OP_CHECKLOCKTIMEVERIFY OP_DROP OP_5 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_2ROT OP_CHECKSIGVERIFY OP_2DROP OP_2DROP OP_1 OP_ELSE OP_5 OP_ROLL OP_2 OP_NUMEQUALVERIFY OP_5 OP_PICK OP_HASH160 OP_3 OP_ROLL OP_EQUALVERIFY OP_2ROT OP_CHECKSIGVERIFY OP_4 OP_PICK OP_6 OP_PICK OP_ADD OP_4 OP_ROLL OP_LESSTHANOREQUAL OP_VERIFY 76a914 OP_ROT OP_CAT 88ac OP_CAT 76a914 OP_ROT OP_CAT 88ac OP_CAT OP_0 OP_OUTPUTBYTECODE OP_ROT OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_3 OP_ROLL OP_GREATERTHANOREQUAL OP_VERIFY OP_1 OP_OUTPUTBYTECODE OP_EQUALVERIFY OP_1 OP_OUTPUTVALUE OP_ROT OP_GREATERTHANOREQUAL OP_NIP OP_ENDIF OP_ENDIF",
+  "source": "pragma cashscript ^0.14.0;\n\ncontract BlazeEscrow(\n    bytes20 buyerPkh,\n    bytes20 sellerPkh,\n    bytes20 arbiterPkh,\n    int deadline,\n    int totalAmount\n) {\n    function release(pubkey buyerPk, sig buyerSig, int releaseAmount) {\n        require(hash160(buyerPk) == buyerPkh);\n        require(checkSig(buyerSig, buyerPk));\n        require(releaseAmount > 0);\n        require(releaseAmount <= totalAmount);\n\n        bytes sellerLockingBytecode = new LockingBytecodeP2PKH(sellerPkh);\n        require(tx.outputs[0].lockingBytecode == sellerLockingBytecode);\n        require(tx.outputs[0].value >= releaseAmount);\n    }\n\n    function refund(pubkey buyerPk, sig buyerSig) {\n        require(tx.time >= deadline);\n        require(hash160(buyerPk) == buyerPkh);\n        require(checkSig(buyerSig, buyerPk));\n    }\n\n    function dispute(pubkey arbiterPk, sig arbiterSig, int sellerShare, int buyerShare) {\n        require(hash160(arbiterPk) == arbiterPkh);\n        require(checkSig(arbiterSig, arbiterPk));\n        require(sellerShare + buyerShare <= totalAmount);\n\n        bytes sellerLockingBytecode = new LockingBytecodeP2PKH(sellerPkh);\n        bytes buyerLockingBytecode = new LockingBytecodeP2PKH(buyerPkh);\n        require(tx.outputs[0].lockingBytecode == sellerLockingBytecode);\n        require(tx.outputs[0].value >= sellerShare);\n        require(tx.outputs[1].lockingBytecode == buyerLockingBytecode);\n        require(tx.outputs[1].value >= buyerShare);\n    }\n}\n",
+  "fingerprint": "1b7587adebab3f2ed57856ecc854a4f4caa4d6f184d88840059b804e7fbbc9cb",
+  "debug": {
+    "bytecode": "5579009c635679a988567a567aad557900a0695579547aa1690376a9147c7e0288ac7e00cd8800cc547aa2777777675579519c63537ab1755579a98871ad6d6d5167557a529d5579a9537a8871ad5479567993547aa1690376a9147b7e0288ac7e0376a9147b7e0288ac7e00cd7b8800cc537aa26951cd8851cc7ba2776868",
+    "sourceMap": "10:4:19:5;;;;;11:24:11:31;;:16::32:1;:8::46;12:25:12:33:0;;:35::42;;:8::45:1;13:16:13:29:0;;:32::33;:16:::1;:8::35;14:16:14:29:0;;:33::44;;:16:::1;:8::46;16:38:16:73:0;:63::72;:38::73:1;;;17:27:17:28:0;:16::45:1;:8::72;18:27:18:28:0;:16::35:1;:39::52:0;;:8::54:1;10:70:19:5;;;:4;21::25::0;;;;;22:27:22:35;;:8::37:1;;23:24:23:31:0;;:16::32:1;:8::46;24:25:24:42:0;:8::45:1;21:50:25:5;;;:4;27::38::0;;;;28:24:28:33;;:16::34:1;:38::48:0;;:8::50:1;29:25:29:46:0;:8::49:1;30:16:30:27:0;;:30::40;;:16:::1;:44::55:0;;:16:::1;:8::57;32:38:32:73:0;:63::72;:38::73:1;;;33:37:33:71:0;:62::70;:37::71:1;;;34:27:34:28:0;:16::45:1;:49::70:0;:8::72:1;35:27:35:28:0;:16::35:1;:39::50:0;;:16:::1;:8::52;36:27:36:28:0;:16::45:1;:8::71;37:27:37:28:0;:16::35:1;:39::49:0;:8::51:1;27:88:38:5;3:0:39:1;",
+    "logs": [],
+    "requires": [
+      { "ip": 13, "line": 11 },
+      { "ip": 18, "line": 12 },
+      { "ip": 23, "line": 13 },
+      { "ip": 29, "line": 14 },
+      { "ip": 37, "line": 17 },
+      { "ip": 43, "line": 18 },
+      { "ip": 54, "line": 22 },
+      { "ip": 59, "line": 23 },
+      { "ip": 61, "line": 24 },
+      { "ip": 75, "line": 28 },
+      { "ip": 77, "line": 29 },
+      { "ip": 86, "line": 30 },
+      { "ip": 100, "line": 34 },
+      { "ip": 106, "line": 35 },
+      { "ip": 109, "line": 36 },
+      { "ip": 114, "line": 37 }
+    ],
+    "sourceTags": "38:40:sc;109:109:sc"
+  },
+  "compiler": {
+    "name": "cashc",
+    "version": "0.14.0",
+    "options": {
+      "enforceFunctionParameterTypes": true,
+      "enforceLocktimeGuard": true
+    }
+  },
+  "updatedAt": "2026-10-18T15:39:38.259Z"
+}

@@ -1,0 +1,68 @@
+{
+  "contractName": "BlazeStream",
+  "constructorInputs": [
+    { "name": "senderPkh", "type": "bytes20" },
+    { "name": "recipientPkh", "type": "bytes20" },
+    { "name": "startTime", "type": "int" },
+    { "name": "stopTime", "type": "int" },
+    { "name": "totalAmount", "type": "int" }
+  ],
+  "abi": [
+    {
+      "name": "claim",
+      "inputs": [
+        { "name": "recipientPk", "type": "pubkey" },
+        { "name": "recipientSig", "type": "sig" },
+        { "name": "claimTime", "type": "int" },
+        { "name": "claimAmount", "type": "int" }
+      ]
+    },
+    {
+      "name": "cancel",
+      "inputs": [
+        { "name": "senderPk", "type": "pubkey" },
+        { "name": "senderSig", "type": "sig" }
+      ]
+    },
+    {
+      "name": "refund",
+      "inputs": [
+        { "name": "senderPk", "type": "pubkey" },
+        { "name": "senderSig", "type": "sig" }
+      ]
+    }
+  ],
+  "bytecode": "OP_5 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_6 OP_PICK OP_HASH160 OP_2 OP_PICK OP_EQUALVERIFY OP_7 OP_ROLL OP_7 OP_ROLL OP_CHECKSIGVERIFY OP_6 OP_PICK OP_CHECKLOCKTIMEVERIFY OP_DROP OP_6 OP_ROLL OP_3 OP_ROLL OP_GREATERTHANOREQUAL OP_VERIFY OP_5 OP_PICK OP_0 OP_GREATERTHAN OP_VERIFY OP_5 OP_PICK OP_4 OP_ROLL OP_LESSTHANOREQUAL OP_VERIFY 76a914 OP_ROT OP_CAT 88ac OP_CAT OP_0 OP_OUTPUTBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_4 OP_ROLL OP_GREATERTHANOREQUAL OP_NIP OP_NIP OP_NIP OP_ELSE OP_5 OP_PICK OP_1 OP_NUMEQUAL OP_IF OP_6 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_6 OP_ROLL OP_6 OP_ROLL OP_CHECKSIGVERIFY OP_2DROP OP_2DROP OP_DROP OP_1 OP_ELSE OP_5 OP_ROLL OP_2 OP_NUMEQUALVERIFY OP_3 OP_ROLL OP_CHECKLOCKTIMEVERIFY OP_DROP OP_4 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_4 OP_ROLL OP_4 OP_ROLL OP_CHECKSIG OP_NIP OP_NIP OP_NIP OP_ENDIF OP_ENDIF",
+  "source": "pragma cashscript ^0.14.0;\n\ncontract BlazeStream(\n    bytes20 senderPkh,\n    bytes20 recipientPkh,\n    int startTime,\n    int stopTime,\n    int totalAmount\n) {\n    function claim(pubkey recipientPk, sig recipientSig, int claimTime, int claimAmount) {\n        require(hash160(recipientPk) == recipientPkh);\n        require(checkSig(recipientSig, recipientPk));\n        require(tx.time >= claimTime);\n        require(claimTime >= startTime);\n        require(claimAmount > 0);\n        require(claimAmount <= totalAmount);\n\n        bytes recipientLockingBytecode = new LockingBytecodeP2PKH(recipientPkh);\n        require(tx.outputs[0].lockingBytecode == recipientLockingBytecode);\n        require(tx.outputs[0].value >= claimAmount);\n    }\n\n    function cancel(pubkey senderPk, sig senderSig) {\n        require(hash160(senderPk) == senderPkh);\n        require(checkSig(senderSig, senderPk));\n    }\n\n    function refund(pubkey senderPk, sig senderSig) {\n        require(tx.time >= stopTime);\n        require(hash160(senderPk) == senderPkh);\n        require(checkSig(senderSig, senderPk));\n    }\n}\n",
+  "fingerprint": "14db5d6b5f737524a2adcb43b8b7ce46d5293db46dd1d12ca16aa1f4570547a0",
+  "debug": {
+    "bytecode": "5579009c635679a9527988577a577aad5679b175567a537aa269557900a0695579547aa1690376a9147b7e0288ac7e00cd8800cc547aa2777777675579519c635679a988567a567aad6d6d755167557a529d537ab1755479a988547a547aac7777776868",
+    "sourceMap": "10:4:21:5;;;;;11:24:11:35;;:16::36:1;:40::52:0;;:8::54:1;12:25:12:37:0;;:39::50;;:8::53:1;13:27:13:36:0;;:8::38:1;;14:16:14:25:0;;:29::38;;:16:::1;:8::40;15:16:15:27:0;;:30::31;:16:::1;:8::33;16:16:16:27:0;;:31::42;;:16:::1;:8::44;18:41:18:79:0;:66::78;:41::79:1;;;19:27:19:28:0;:16::45:1;:8::75;20:27:20:28:0;:16::35:1;:39::50:0;;:8::52:1;10:89:21:5;;;:4;23::26::0;;;;;24:24:24:32;;:16::33:1;:8::48;25:25:25:34:0;;:36::44;;:8::47:1;23:52:26:5;;;;:4;28::32::0;;;;29:27:29:35;;:8::37:1;;30:24:30:32:0;;:16::33:1;:8::48;31:25:31:34:0;;:36::44;;:8::47:1;28:52:32:5;;;3:0:33:1;",
+    "logs": [],
+    "requires": [
+      { "ip": 15, "line": 11 },
+      { "ip": 20, "line": 12 },
+      { "ip": 23, "line": 13 },
+      { "ip": 30, "line": 14 },
+      { "ip": 35, "line": 15 },
+      { "ip": 41, "line": 16 },
+      { "ip": 49, "line": 19 },
+      { "ip": 55, "line": 20 },
+      { "ip": 67, "line": 24 },
+      { "ip": 72, "line": 25 },
+      { "ip": 84, "line": 29 },
+      { "ip": 89, "line": 30 },
+      { "ip": 95, "line": 31 }
+    ],
+    "sourceTags": "50:52:sc;90:92:sc"
+  },
+  "compiler": {
+    "name": "cashc",
+    "version": "0.14.0",
+    "options": {
+      "enforceFunctionParameterTypes": true,
+      "enforceLocktimeGuard": true
+    }
+  },
+  "updatedAt": "2026-10-18T15:39:37.735Z"
+}

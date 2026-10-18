@@ -1,0 +1,39 @@
+pragma cashscript ^0.14.0;
+
+contract BlazeEscrow(
+    bytes20 buyerPkh,
+    bytes20 sellerPkh,
+    bytes20 arbiterPkh,
+    int deadline,
+    int totalAmount
+) {
+    function release(pubkey buyerPk, sig buyerSig, int releaseAmount) {
+        require(hash160(buyerPk) == buyerPkh);
+        require(checkSig(buyerSig, buyerPk));
+        require(releaseAmount > 0);
+        require(releaseAmount <= totalAmount);
+
+        bytes sellerLockingBytecode = new LockingBytecodeP2PKH(sellerPkh);
+        require(tx.outputs[0].lockingBytecode == sellerLockingBytecode);
+        require(tx.outputs[0].value >= releaseAmount);
+    }
+
+    function refund(pubkey buyerPk, sig buyerSig) {
+        require(tx.time >= deadline);
+        require(hash160(buyerPk) == buyerPkh);
+        require(checkSig(buyerSig, buyerPk));
+    }
+
+    function dispute(pubkey arbiterPk, sig arbiterSig, int sellerShare, int buyerShare) {
+        require(hash160(arbiterPk) == arbiterPkh);
+        require(checkSig(arbiterSig, arbiterPk));
+        require(sellerShare + buyerShare <= totalAmount);
+
+        bytes sellerLockingBytecode = new LockingBytecodeP2PKH(sellerPkh);
+        bytes buyerLockingBytecode = new LockingBytecodeP2PKH(buyerPkh);
+        require(tx.outputs[0].lockingBytecode == sellerLockingBytecode);
+        require(tx.outputs[0].value >= sellerShare);
+        require(tx.outputs[1].lockingBytecode == buyerLockingBytecode);
+        require(tx.outputs[1].value >= buyerShare);
+    }
+}
