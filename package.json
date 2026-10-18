@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "compile": "cashc contracts/BlazeStream.cash -o artifacts/BlazeStream.json && cashc contracts/BlazeEscrow.cash -o artifacts/BlazeEscrow.json",
-    "test": "node test/blazevault.test.js"
+    "test": "node test/blazevault.test.js",
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run compile && npm run build --prefix frontend"
   },
   "devDependencies": {
     "cashc": "^0.14.0",
