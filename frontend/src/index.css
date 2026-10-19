@@ -232,8 +232,7 @@
 .activity-row code { color: var(--subtle); font-size: .63rem; }
 .activity-row time { color: var(--subtle); font: 500 .67rem 'JetBrains Mono', monospace; white-space: nowrap; }
 
-/* Existing creation forms and notifications keep their logic, with token colors
-   mapped to the same surfaces as the workbench. */
+
 .dialog-panel [class*="bg-slate-950"], .dialog-panel [class*="bg-slate-900"], .dialog-panel [class*="bg-slate-800"] { background: var(--soft); }
 .dialog-panel [class*="text-white"], .dialog-panel [class*="text-slate-200"] { color: var(--ink); }
 .dialog-panel [class*="text-slate-300"], .dialog-panel [class*="text-slate-400"] { color: var(--muted); }

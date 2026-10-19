@@ -36,7 +36,7 @@ export function Header({ activeTab, setActiveTab, wallets, activeWallet, setActi
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem('blazevault-theme', next); } catch { /* storage may be unavailable */ }
+    try { localStorage.setItem('blazevault-theme', next); } catch {}
     setTheme(next);
   };
   const copyAddress = async () => {
