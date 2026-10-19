@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Flame, Zap, ArrowRight } from 'lucide-react';
 import type { WalletProfile } from '../types';
+import { useDialog } from '../utils/useDialog';
 
 interface CreateStreamModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const CreateStreamModal: React.FC<CreateStreamModalProps> = ({
   const [totalAmountBch, setTotalAmountBch] = useState('1.5');
   const [durationHours, setDurationHours] = useState('24');
   const [tokenSymbol, setTokenSymbol] = useState<'BCH' | 'PUSD'>('BCH');
+  const dialogRef = useDialog(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -52,28 +54,28 @@ export const CreateStreamModal: React.FC<CreateStreamModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md p-4 flex min-h-screen items-center justify-center animate-in fade-in">
-      <div className="relative w-full max-w-xl my-8 rounded-2xl glass-panel p-6 border border-emerald-500/30 shadow-2xl space-y-5">
+    <div className="dialog-overlay fixed inset-0 z-50 overflow-y-auto p-4 flex min-h-screen items-center justify-center">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-stream-title" className="dialog-panel relative w-full max-w-xl my-8 p-6 border shadow-2xl space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Flame className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Initialize Autonomous Payment Stream</h3>
-              <p className="text-xs text-slate-400">Locked in BlazeStream CashScript UTXO covenant</p>
+              <h3 id="create-stream-title" className="text-base font-bold text-white">Create demo payment stream</h3>
+              <p className="text-xs text-slate-400">Preview a BlazeStream schedule without sending a transaction</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1">
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1" aria-label="Close create stream dialog">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-medium text-slate-300 mb-1.5">Stream Purpose / Title</label>
+            <label htmlFor="stream-title" className="block font-medium text-slate-300 mb-1.5">Stream Purpose / Title</label>
             <input
-              type="text"
+              id="stream-title" type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -112,9 +114,9 @@ export const CreateStreamModal: React.FC<CreateStreamModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-medium text-slate-300 mb-1.5">Total Amount ({tokenSymbol})</label>
+              <label htmlFor="stream-amount" className="block font-medium text-slate-300 mb-1.5">Total Amount ({tokenSymbol})</label>
               <input
-                type="number"
+                id="stream-amount" type="number"
                 step="0.001"
                 min="0.001"
                 required
@@ -127,7 +129,7 @@ export const CreateStreamModal: React.FC<CreateStreamModalProps> = ({
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="font-medium text-slate-300">Recipient CashAddress</label>
+              <label htmlFor="stream-recipient" className="font-medium text-slate-300">Recipient CashAddress</label>
               <button
                 type="button"
                 onClick={() => {
@@ -140,7 +142,7 @@ export const CreateStreamModal: React.FC<CreateStreamModalProps> = ({
               </button>
             </div>
             <input
-              type="text"
+              id="stream-recipient" type="text"
               required
               value={recipientAddress}
               onChange={(e) => {
@@ -205,7 +207,7 @@ export const CreateStreamModal: React.FC<CreateStreamModalProps> = ({
               type="submit"
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-lg shadow-emerald-500/25 transition-all cursor-pointer"
             >
-              <span>Deploy Stream Covenant</span>
+              <span>Create demo stream</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

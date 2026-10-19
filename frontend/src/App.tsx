@@ -39,7 +39,7 @@ export function App() {
   const addToast = (title: string, description: string, txid?: string) => {
     const newToast: ToastMessage = {
       id: Math.random().toString(36).substring(2, 9),
-      title,
+      title: `Demo · ${title}`,
       description,
       txid,
     };
@@ -394,7 +394,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="app-shell flex flex-col font-sans">
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -405,7 +405,8 @@ export function App() {
         onClaimFaucet={handleClaimFaucet}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="app-main">
+        <div className="demo-notice" role="note"><strong>DEMO MODE</strong><span>Balances and actions are simulated in this browser session. No blockchain transaction is sent.</span></div>
         {activeTab === 'streams' && (
           <StreamView
             streams={streams}
@@ -431,7 +432,7 @@ export function App() {
         {activeTab === 'inspector' && <CovenantInspector auditLogs={auditLogs} />}
       </main>
 
-      <footer className="w-full border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500 font-mono">
+      <footer className="app-footer w-full py-6 text-center text-xs font-mono">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
             <span>BlazeVault Protocol</span> • <span>Bitcoin Cash Introspection Covenants</span>

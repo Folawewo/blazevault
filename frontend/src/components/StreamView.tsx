@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Plus, Flame, TrendingUp, Layers, Zap } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowUpRight } from 'lucide-react';
 import type { Stream, WalletProfile } from '../types';
 import { StreamCard } from './StreamCard';
-import { formatBch, formatUsd } from '../utils/formatters';
+import { formatBch } from '../utils/formatters';
+import { streamSnapshot } from '../utils/streamMath';
 
 interface StreamViewProps {
   streams: Stream[];
@@ -13,151 +14,58 @@ interface StreamViewProps {
   onRefund: (streamId: string) => void;
 }
 
-export const StreamView: React.FC<StreamViewProps> = ({
-  streams,
-  activeWallet,
-  onOpenCreateModal,
-  onClaim,
-  onCancel,
-  onRefund,
-}) => {
+export function StreamView({ streams, activeWallet, onOpenCreateModal, onClaim, onCancel, onRefund }: StreamViewProps) {
   const [filter, setFilter] = useState<'all' | 'my' | 'active'>('all');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [now, setNow] = useState(0);
+  const detailRef = useRef<HTMLDivElement>(null);
 
-  const filteredStreams = streams.filter((s) => {
-    if (filter === 'active') return s.status === 'active';
-    if (filter === 'my') {
-      const addr = activeWallet.address.toLowerCase();
-      return s.senderAddress.toLowerCase() === addr || s.recipientAddress.toLowerCase() === addr;
-    }
-    return true;
-  });
+  useEffect(() => {
+    const tick = () => setNow(Math.floor(Date.now() / 1000));
+    const initial = window.setTimeout(tick, 0);
+    const interval = window.setInterval(tick, 1000);
+    return () => { window.clearTimeout(initial); window.clearInterval(interval); };
+  }, []);
 
-  const totalStreamVolumeSats = streams.reduce((acc, s) => acc + s.totalAmountSats, 0);
-  const activeStreamsCount = streams.filter((s) => s.status === 'active').length;
-  const totalFlowVelocity = streams
-    .filter((s) => s.status === 'active')
-    .reduce((acc, s) => acc + Math.round(s.totalAmountSats / Math.max(1, s.stopTime - s.startTime)), 0);
+  const active = streams.filter(stream => stream.status === 'active');
+  const visible = streams.filter(stream => filter === 'all' || (filter === 'active' ? stream.status === 'active' : [stream.senderAddress, stream.recipientAddress].some(address => address.toLowerCase() === activeWallet.address.toLowerCase())));
+  const selected = visible.find(stream => stream.id === selectedId) ?? visible[0];
+  const total = streams.reduce((sum, stream) => sum + stream.totalAmountSats, 0);
 
-  return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 rounded-2xl glass-panel relative overflow-hidden">
-          <div className="absolute right-3 top-3 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl"></div>
-          <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-            <span>Total Stream Liquidity</span>
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-mono text-3xl font-extrabold text-white tracking-tight">
-              {formatBch(totalStreamVolumeSats)}
-            </span>
-            <span className="text-sm font-bold text-emerald-400">BCH</span>
-          </div>
-          <div className="text-xs font-mono text-slate-500 mt-1">
-            ≈ {formatUsd(totalStreamVolumeSats)} cumulative
-          </div>
-        </div>
+  const select = (id: string) => {
+    setSelectedId(id);
+    if (window.matchMedia('(max-width: 900px)').matches) window.setTimeout(() => detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+  };
 
-        <div className="p-5 rounded-2xl glass-panel relative overflow-hidden">
-          <div className="absolute right-3 top-3 w-20 h-20 bg-cyan-500/10 rounded-full blur-2xl"></div>
-          <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-            <span>Active Continuous Streams</span>
-            <Layers className="w-4 h-4 text-cyan-400" />
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-mono text-3xl font-extrabold text-white tracking-tight">
-              {activeStreamsCount}
-            </span>
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-              Live Now
-            </span>
-          </div>
-          <div className="text-xs text-slate-500 mt-1 font-mono">
-            Across {streams.length} registered covenants
-          </div>
-        </div>
-
-        <div className="p-5 rounded-2xl glass-panel relative overflow-hidden">
-          <div className="absolute right-3 top-3 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl"></div>
-          <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-            <span>Global Stream Velocity</span>
-            <Zap className="w-4 h-4 text-amber-400" />
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-mono text-3xl font-extrabold text-white tracking-tight">
-              {totalFlowVelocity.toLocaleString()}
-            </span>
-            <span className="text-sm font-bold text-amber-400">sats/sec</span>
-          </div>
-          <div className="text-xs text-slate-500 mt-1 font-mono">
-            Autonomous second-by-second covenant flow
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-900/80 border border-slate-800 self-start">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              filter === 'all'
-                ? 'bg-slate-800 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            All Streams ({streams.length})
-          </button>
-          <button
-            onClick={() => setFilter('my')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              filter === 'my'
-                ? 'bg-slate-800 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            My Streams
-          </button>
-          <button
-            onClick={() => setFilter('active')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              filter === 'active'
-                ? 'bg-slate-800 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Active Only ({activeStreamsCount})
-          </button>
-        </div>
-
-        <button
-          onClick={onOpenCreateModal}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs tracking-wide shadow-lg shadow-emerald-500/25 transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          <span>INITIALIZE NEW STREAM</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredStreams.map((stream) => (
-          <StreamCard
-            key={stream.id}
-            stream={stream}
-            activeWallet={activeWallet}
-            onClaim={onClaim}
-            onCancel={onCancel}
-            onRefund={onRefund}
-          />
-        ))}
-
-        {filteredStreams.length === 0 && (
-          <div className="col-span-full p-12 text-center rounded-2xl glass-panel border-dashed border-slate-800">
-            <Flame className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-            <div className="text-sm font-semibold text-slate-300">No Streams Found</div>
-            <p className="text-xs text-slate-500 mt-1">Try switching filters or initialize a new stream.</p>
-          </div>
-        )}
-      </div>
+  return <section className="workspace-page" aria-labelledby="streams-heading">
+    <div className="workspace-intro">
+      <div><div className="workspace-kicker">01 / CONTINUOUS PAYMENTS</div><h1 id="streams-heading">Payment streams</h1><p>Every scheduled payment, and what can be claimed right now.</p></div>
+      <button className="action-primary" onClick={onOpenCreateModal}>Create stream <ArrowUpRight size={16} aria-hidden="true" /></button>
     </div>
-  );
-};
+    <div className="workspace-facts" aria-label="Stream overview">
+      <div><span>Volume scheduled</span><strong>{formatBch(total)} <small>BCH</small></strong></div>
+      <div><span>Active streams</span><strong>{active.length} <small>of {streams.length}</small></strong></div>
+      <div className="flow-fact"><span>Current flow</span><strong>{active.reduce((sum, stream) => sum + streamSnapshot(stream, now).satsPerSecond, 0).toLocaleString()} <small>sats / sec</small></strong></div>
+    </div>
+    <div className="workspace-layout">
+      <div className="workspace-register-rail">
+      <div className="workspace-section-label stream-register-label"><span>Stream register</span><span>{visible.length} shown</span></div>
+      <div className="register" aria-label="Streams">
+        <div className="register-filters" role="group" aria-label="Filter streams">
+          {([['all', 'All'], ['my', 'Mine'], ['active', 'Active']] as const).map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}
+        </div>
+        {visible.length ? <div className="register-items">{visible.map(stream => {
+          const snapshot = streamSnapshot(stream, now);
+          return <button key={stream.id} className="register-item" data-selected={selected?.id === stream.id} onClick={() => select(stream.id)} aria-current={selected?.id === stream.id ? 'true' : undefined}>
+            <span className="register-item-top"><span className="register-title">{stream.title}</span><span className={`status-word status-${stream.status}`}>{stream.status}</span></span>
+            <span className="register-description">{stream.senderName.split(' ')[0]} → {stream.recipientName.split(' ')[0]} <span aria-hidden="true">·</span> {stream.tokenSymbol}</span>
+            <span className="register-item-bottom"><strong>{formatBch(stream.totalAmountSats)} <small>{stream.tokenSymbol}</small></strong><span>{stream.status === 'active' ? `${snapshot.progress.toFixed(0)}% streamed` : stream.status}</span></span>
+            <span className="progress-track" role="progressbar" aria-label={`${stream.title} streamed`} aria-valuenow={Math.round(snapshot.progress)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${snapshot.progress}%` }} /></span>
+          </button>;
+        })}</div> : <div className="register-empty">No streams match this filter.</div>}
+      </div>
+      </div>
+      <div ref={detailRef} className="workspace-detail">{selected ? <StreamCard stream={selected} activeWallet={activeWallet} now={now} onClaim={onClaim} onCancel={onCancel} onRefund={onRefund} /> : <div className="detail-empty">Select another filter or create a stream.</div>}</div>
+    </div>
+  </section>;
+}

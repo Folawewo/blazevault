@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, ShieldCheck, ArrowRight } from 'lucide-react';
 import type { WalletProfile } from '../types';
+import { useDialog } from '../utils/useDialog';
 
 interface CreateEscrowModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
 
   const [milestone3Title, setMilestone3Title] = useState('Milestone 3: Final Production Mainnet Delivery');
   const [milestone3Amount, setMilestone3Amount] = useState('1.5');
+  const dialogRef = useDialog(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -65,28 +67,28 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md p-4 flex min-h-screen items-center justify-center animate-in fade-in">
-      <div className="relative w-full max-w-xl my-8 rounded-2xl glass-panel p-6 border border-cyan-500/30 shadow-2xl space-y-5">
+    <div className="dialog-overlay fixed inset-0 z-50 overflow-y-auto p-4 flex min-h-screen items-center justify-center">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-escrow-title" className="dialog-panel relative w-full max-w-xl my-8 p-6 border shadow-2xl space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Deploy Trustless Milestone Escrow</h3>
-              <p className="text-xs text-slate-400">Guaranteed by multi-party CashScript covenant bytecode</p>
+              <h3 id="create-escrow-title" className="text-base font-bold text-white">Create demo milestone escrow</h3>
+              <p className="text-xs text-slate-400">Preview an agreement without sending a transaction</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1">
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1" aria-label="Close create escrow dialog">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-medium text-slate-300 mb-1.5">Escrow Contract Title</label>
+            <label htmlFor="escrow-title" className="block font-medium text-slate-300 mb-1.5">Escrow Contract Title</label>
             <input
-              type="text"
+              id="escrow-title" type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -98,7 +100,7 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="font-medium text-slate-300">Seller CashAddress</label>
+                <label htmlFor="escrow-seller" className="font-medium text-slate-300">Seller CashAddress</label>
                 <button
                   type="button"
                   onClick={() => {
@@ -113,7 +115,7 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
               <input
                 type="text"
                 required
-                value={sellerAddress}
+                id="escrow-seller" value={sellerAddress}
                 onChange={(e) => {
                   setSellerAddress(e.target.value);
                   setSellerName('Custom Seller');
@@ -124,7 +126,7 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="font-medium text-slate-300">Arbiter CashAddress</label>
+                <label htmlFor="escrow-arbiter" className="font-medium text-slate-300">Arbiter CashAddress</label>
                 <button
                   type="button"
                   onClick={() => {
@@ -139,7 +141,7 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
               <input
                 type="text"
                 required
-                value={arbiterAddress}
+                id="escrow-arbiter" value={arbiterAddress}
                 onChange={(e) => {
                   setArbiterAddress(e.target.value);
                   setArbiterName('Custom Arbiter');
@@ -182,14 +184,14 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={milestone1Title}
+                  aria-label="Milestone 1 title" value={milestone1Title}
                   onChange={(e) => setMilestone1Title(e.target.value)}
                   className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs"
                 />
                 <input
                   type="number"
                   step="0.1"
-                  value={milestone1Amount}
+                  aria-label="Milestone 1 amount in BCH" min="0" value={milestone1Amount}
                   onChange={(e) => setMilestone1Amount(e.target.value)}
                   className="w-24 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono text-xs text-right"
                   placeholder="BCH"
@@ -199,14 +201,14 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={milestone2Title}
+                  aria-label="Milestone 2 title" value={milestone2Title}
                   onChange={(e) => setMilestone2Title(e.target.value)}
                   className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs"
                 />
                 <input
                   type="number"
                   step="0.1"
-                  value={milestone2Amount}
+                  aria-label="Milestone 2 amount in BCH" min="0" value={milestone2Amount}
                   onChange={(e) => setMilestone2Amount(e.target.value)}
                   className="w-24 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono text-xs text-right"
                   placeholder="BCH"
@@ -216,14 +218,14 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={milestone3Title}
+                  aria-label="Milestone 3 title" value={milestone3Title}
                   onChange={(e) => setMilestone3Title(e.target.value)}
                   className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs"
                 />
                 <input
                   type="number"
                   step="0.1"
-                  value={milestone3Amount}
+                  aria-label="Milestone 3 amount in BCH" min="0" value={milestone3Amount}
                   onChange={(e) => setMilestone3Amount(e.target.value)}
                   className="w-24 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono text-xs text-right"
                   placeholder="BCH"
@@ -251,7 +253,7 @@ export const CreateEscrowModal: React.FC<CreateEscrowModalProps> = ({
               type="submit"
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-bold shadow-lg shadow-cyan-500/25 transition-all cursor-pointer"
             >
-              <span>Deploy Escrow Vault</span>
+                <span>Create demo escrow</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

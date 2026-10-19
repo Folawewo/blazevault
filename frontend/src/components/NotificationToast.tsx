@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, ExternalLink, X } from 'lucide-react';
+import { CheckCircle2, X } from 'lucide-react';
 import { truncateTxid } from '../utils/formatters';
 
 export interface ToastMessage {
@@ -18,7 +18,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({ toasts, on
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 space-y-2 max-w-sm w-full">
+    <div className="fixed bottom-5 right-5 z-50 space-y-2 max-w-sm w-full" role="status" aria-live="polite">
       {toasts.map((t) => (
         <div
           key={t.id}
@@ -30,20 +30,11 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({ toasts, on
             <div className="text-slate-300 mt-0.5 leading-relaxed">{t.description}</div>
             {t.txid && (
               <div className="mt-2 flex items-center gap-1 font-mono text-[10px] text-emerald-400">
-                <span>TX: {truncateTxid(t.txid)}</span>
-                <a
-                  href={`https://chipnet.imaginary.cash/tx/${t.txid}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline flex items-center gap-0.5 ml-1 text-cyan-400"
-                >
-                  <span>Explorer</span>
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </a>
+                <span>Simulated ID: {truncateTxid(t.txid)}</span>
               </div>
             )}
           </div>
-          <button onClick={() => onDismiss(t.id)} className="text-slate-500 hover:text-white p-0.5">
+          <button onClick={() => onDismiss(t.id)} className="text-slate-500 hover:text-white p-0.5" aria-label={`Dismiss ${t.title}`}>
             <X className="w-4 h-4" />
           </button>
         </div>
